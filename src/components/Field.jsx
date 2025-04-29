@@ -20,20 +20,49 @@ export default function Field({ field, value, error, onChange }) {
         return (
           <div className={styles.dateInputWrapper}>
             <input
-              type={field.type}
+              type="text"
               id={field.fieldId}
               value={value || ""}
-              onChange={handleChange}
+              onChange={(e) => {
+                // Basic date format validation
+                const dateStr = e.target.value;
+                if (dateStr === "" || /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                  handleChange(e);
+                }
+              }}
               className={styles.input}
               placeholder="YYYY-MM-DD"
-              max={new Date().toISOString().split("T")[0]}
+              maxLength={10}
             />
             <button
               type="button"
               className={styles.calendarButton}
               onClick={() => {
-                const dateInput = document.getElementById(field.fieldId);
-                dateInput.showPicker();
+                // Create a temporary input for the date picker
+                const temp = document.createElement("input");
+                temp.type = "date";
+                temp.style.position = "fixed";
+                temp.style.left = "-100vw";
+                document.body.appendChild(temp);
+                temp.max = new Date().toISOString().split("T")[0];
+                temp.showPicker();
+
+                temp.addEventListener(
+                  "change",
+                  (e) => {
+                    onChange(e.target.value);
+                    document.body.removeChild(temp);
+                  },
+                  { once: true }
+                );
+
+                temp.addEventListener(
+                  "blur",
+                  () => {
+                    document.body.removeChild(temp);
+                  },
+                  { once: true }
+                );
               }}
               aria-label="Open calendar"
             >
@@ -89,6 +118,11 @@ export default function Field({ field, value, error, onChange }) {
         );
 
       case "select":
+      case "dropdown":
+        const options = field.options || [];
+        const placeholderText =
+          field.placeholder || `Select ${field.label.toLowerCase()}`;
+
         return (
           <select
             id={field.fieldId}
@@ -96,8 +130,10 @@ export default function Field({ field, value, error, onChange }) {
             onChange={handleChange}
             className={styles.select}
           >
-            <option value="">Select {field.label.toLowerCase()}</option>
-            {field.options?.map((option) => (
+            <option value="" disabled>
+              {placeholderText}
+            </option>
+            {options.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
