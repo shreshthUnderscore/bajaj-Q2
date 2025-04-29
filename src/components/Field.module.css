@@ -101,39 +101,6 @@
 }
 
 /* Date input styling */
-.input[type="date"] {
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 0.5rem;
-  min-height: 42px;
-}
-
-.input[type="date"]::-webkit-calendar-picker-indicator {
-  background: transparent;
-  bottom: 0;
-  color: transparent;
-  cursor: pointer;
-  height: auto;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: auto;
-}
-
-.input[type="date"]::-webkit-datetime-edit-fields-wrapper {
-  padding: 0;
-}
-
-/* Ensure date placeholder shows on Firefox */
-.input[type="date"]:invalid::-webkit-datetime-edit {
-  color: #6b7280;
-}
-
-.input[type="date"]:focus::-webkit-datetime-edit {
-  color: #1f2937;
-}
-
 .dateInputWrapper {
   position: relative;
   width: 100%;
@@ -141,9 +108,47 @@
   align-items: center;
 }
 
-.calendarButton {
+.input[type="date"] {
+  position: relative;
+  padding-right: 40px; /* Space for the calendar icon */
+  min-height: 42px;
+  cursor: text;
+}
+
+.input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
   position: absolute;
   right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.input[type="date"]::-webkit-inner-spin-button,
+.input[type="date"]::-webkit-clear-button {
+  display: none;
+}
+
+.input[type="date"] {
+  appearance: textfield;
+  -webkit-appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+/* Ensure date placeholder shows */
+.input[type="date"]:invalid {
+  color: #6b7280;
+}
+
+.input[type="date"]:focus {
+  color: #1f2937;
+}
+
+.calendarButton {
+  position: absolute;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -155,6 +160,7 @@
   align-items: center;
   justify-content: center;
   transition: color 0.2s ease;
+  z-index: 0;
 }
 
 .calendarButton:hover {

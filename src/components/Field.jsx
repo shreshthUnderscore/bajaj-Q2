@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useRef } from "react";
 import styles from "./Field.module.css";
 
 export default function Field({ field, value, error, onChange }) {
+  const dateInputRef = useRef(null);
+
   const handleChange = (e) => {
     if (field.type === "checkbox") {
       const checkboxValue = e.target.value;
@@ -20,50 +22,19 @@ export default function Field({ field, value, error, onChange }) {
         return (
           <div className={styles.dateInputWrapper}>
             <input
-              type="text"
+              ref={dateInputRef}
+              type="date"
               id={field.fieldId}
               value={value || ""}
-              onChange={(e) => {
-                // Basic date format validation
-                const dateStr = e.target.value;
-                if (dateStr === "" || /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-                  handleChange(e);
-                }
-              }}
+              onChange={handleChange}
               className={styles.input}
-              placeholder="YYYY-MM-DD"
-              maxLength={10}
+              max={new Date().toISOString().split("T")[0]}
+              data-testid={field.dataTestId}
             />
             <button
               type="button"
               className={styles.calendarButton}
-              onClick={() => {
-                // Create a temporary input for the date picker
-                const temp = document.createElement("input");
-                temp.type = "date";
-                temp.style.position = "fixed";
-                temp.style.left = "-100vw";
-                document.body.appendChild(temp);
-                temp.max = new Date().toISOString().split("T")[0];
-                temp.showPicker();
-
-                temp.addEventListener(
-                  "change",
-                  (e) => {
-                    onChange(e.target.value);
-                    document.body.removeChild(temp);
-                  },
-                  { once: true }
-                );
-
-                temp.addEventListener(
-                  "blur",
-                  () => {
-                    document.body.removeChild(temp);
-                  },
-                  { once: true }
-                );
-              }}
+              onClick={() => dateInputRef.current?.showPicker()}
               aria-label="Open calendar"
             >
               <svg
