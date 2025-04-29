@@ -7,7 +7,12 @@ export async function registerUser(rollNumber, name) {
     body: JSON.stringify({ rollNumber, name }),
   });
   if (!response.ok) {
-    return { success: false, message: "Registration failed" };
+    const data = await response.json().catch(() => ({}));
+    return {
+      success: false,
+      status: response.status,
+      message: data.message || "Registration failed",
+    };
   }
   const data = await response.json();
   return { success: true, ...data };
