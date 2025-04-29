@@ -100,6 +100,32 @@
   accent-color: #1a73e8;
 }
 
+/* Single checkbox styling */
+.singleCheckboxField {
+  padding: 12px 20px;
+}
+
+.singleCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.singleCheckbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #6366f1;
+  cursor: pointer;
+}
+
+.singleCheckbox span {
+  flex: 1;
+  line-height: 1.4;
+}
+
 /* Date input styling */
 .dateInputWrapper {
   position: relative;

@@ -6,11 +6,17 @@ export default function Field({ field, value, error, onChange }) {
 
   const handleChange = (e) => {
     if (field.type === "checkbox") {
-      const checkboxValue = e.target.value;
-      const newValue = e.target.checked
-        ? [...(value || []), checkboxValue]
-        : (value || []).filter((v) => v !== checkboxValue);
-      onChange(newValue);
+      if (field.options && field.options.length > 0) {
+        // Handle checkbox group
+        const checkboxValue = e.target.value;
+        const newValue = e.target.checked
+          ? [...(value || []), checkboxValue]
+          : (value || []).filter((v) => v !== checkboxValue);
+        onChange(newValue);
+      } else {
+        // Handle single checkbox
+        onChange(e.target.checked);
+      }
     } else {
       onChange(e.target.value);
     }
@@ -131,21 +137,38 @@ export default function Field({ field, value, error, onChange }) {
         );
 
       case "checkbox":
-        return (
-          <div className={styles.checkboxGroup}>
-            {field.options?.map((option) => (
-              <label key={option.value}>
-                <input
-                  type="checkbox"
-                  value={option.value}
-                  checked={(value || []).includes(option.value)}
-                  onChange={handleChange}
-                />
-                {option.label}
-              </label>
-            ))}
-          </div>
-        );
+        if (field.options && field.options.length > 0) {
+          // Render checkbox group
+          return (
+            <div className={styles.checkboxGroup}>
+              {field.options.map((option) => (
+                <label key={option.value}>
+                  <input
+                    type="checkbox"
+                    value={option.value}
+                    checked={(value || []).includes(option.value)}
+                    onChange={handleChange}
+                    data-testid={option.dataTestId}
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          );
+        } else {
+          // Render single checkbox
+          return (
+            <label className={styles.singleCheckbox}>
+              <input
+                type="checkbox"
+                checked={value || false}
+                onChange={handleChange}
+                data-testid={field.dataTestId}
+              />
+              <span>{field.label}</span>
+            </label>
+          );
+        }
 
       default:
         return null;
@@ -153,11 +176,19 @@ export default function Field({ field, value, error, onChange }) {
   };
 
   return (
-    <div className={styles.fieldGroup}>
-      <label className={styles.label} htmlFor={field.fieldId}>
-        {field.label}
-        {field.required && <span style={{ color: "#dc2626" }}>*</span>}
-      </label>
+    <div
+      className={`${styles.fieldGroup} ${
+        field.type === "checkbox" && !field.options?.length
+          ? styles.singleCheckboxField
+          : ""
+      }`}
+    >
+      {field.type !== "checkbox" || field.options?.length > 0 ? (
+        <label className={styles.label} htmlFor={field.fieldId}>
+          {field.label}
+          {field.required && <span style={{ color: "#dc2626" }}>*</span>}
+        </label>
+      ) : null}
       {renderField()}
       {field.helper && <div className={styles.helper}>{field.helper}</div>}
       {error && <div className={styles.error}>{error}</div>}
