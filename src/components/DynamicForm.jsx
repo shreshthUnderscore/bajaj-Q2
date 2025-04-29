@@ -127,21 +127,9 @@ export default function DynamicForm({ rollNumber, initialForm }) {
     <div className="form-content">
       <div className="form-header">
         <div>
-          <h1
-            style={{
-              fontSize: "1.5rem",
-              color: "var(--text-primary)",
-              marginBottom: "0.25rem",
-            }}
-          >
+          <h1 style={{ fontSize: "1.5rem", color: "var(--text-primary)" }}>
             {form.formTitle}
           </h1>
-          <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)" }}>
-            Form ID: {form.formId}
-          </div>
-        </div>
-        <div style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
-          Version {form.version}
         </div>
       </div>
 
