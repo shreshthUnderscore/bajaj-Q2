@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { validateSection } from "../utils/validation";
+import React, { useState } from "react";
 import Field from "./Field";
+import { validateField } from "../utils/validation";
+import styles from "./Section.module.css";
 
 export default function Section({
   section,
@@ -12,102 +13,99 @@ export default function Section({
   onSubmit,
   isFirst,
   isLast,
+  sectionIndex,
+  totalSections,
 }) {
-  const [localValues, setLocalValues] = useState({});
-  const [localErrors, setLocalErrors] = useState({});
+  const [localValues, setLocalValues] = useState(values);
+  const [localErrors, setLocalErrors] = useState(errors);
 
-  useEffect(() => {
-    const sectionFieldValues = {};
+  const handleFieldChange = (fieldId, value) => {
+    const newValues = { ...localValues, [fieldId]: value };
+    setLocalValues(newValues);
+
+    const field = section.fields.find((f) => f.fieldId === fieldId);
+    const fieldError = validateField(value, field);
+
+    const newErrors = {
+      ...localErrors,
+      [fieldId]: fieldError,
+    };
+    setLocalErrors(newErrors);
+    onSectionChange(newValues, newErrors);
+  };
+
+  const handleContinue = () => {
+    const newErrors = {};
+    let hasErrors = false;
+
     section.fields.forEach((field) => {
-      sectionFieldValues[field.fieldId] =
-        values[field.fieldId] || (field.type === "checkbox" ? [] : "");
+      const error = validateField(localValues[field.fieldId], field);
+      if (error) {
+        newErrors[field.fieldId] = error;
+        hasErrors = true;
+      }
     });
-    setLocalValues(sectionFieldValues);
-    setLocalErrors({});
-  }, [section, values]);
 
-  const handleChange = (fieldId, value) => {
-    const updatedValues = { ...localValues, [fieldId]: value };
-    setLocalValues(updatedValues);
-    const validationErrors = validateSection(section, updatedValues);
-    setLocalErrors(validationErrors);
-    onSectionChange(updatedValues, validationErrors);
-  };
+    setLocalErrors(newErrors);
 
-  const handleNext = (e) => {
-    e.preventDefault();
-    const validationErrors = validateSection(section, localValues);
-    setLocalErrors(validationErrors);
-    if (Object.keys(validationErrors).length === 0) {
-      onNext(localValues, {});
+    if (!hasErrors) {
+      if (isLast) {
+        onSubmit(localValues, newErrors);
+      } else {
+        onNext(localValues, newErrors);
+      }
     }
   };
 
-  const handlePrev = (e) => {
-    e.preventDefault();
-    onPrev();
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const validationErrors = validateSection(section, localValues);
-    setLocalErrors(validationErrors);
-    if (Object.keys(validationErrors).length === 0) {
-      onSubmit(localValues, {});
-    }
-  };
+  const progress = ((sectionIndex + 1) / totalSections) * 100;
 
   return (
-    <form>
-      <h3 style={{ marginBottom: 4 }}>{section.title}</h3>
-      <div style={{ color: "#666", marginBottom: 16 }}>
-        {section.description}
+    <div className={styles.sectionContainer}>
+      <div className={styles.progressBar}>
+        <div className={styles.progress} style={{ width: `${progress}%` }} />
       </div>
-      {section.fields.map((field) => (
-        <div key={field.fieldId} style={{ marginBottom: 18 }}>
+
+      <h2 className={styles.sectionHeader}>{section.title}</h2>
+      {section.description && (
+        <p className={styles.sectionDescription}>{section.description}</p>
+      )}
+
+      <div className={styles.fieldsGrid}>
+        {section.fields.map((field) => (
           <Field
+            key={field.fieldId}
             field={field}
             value={localValues[field.fieldId]}
             error={localErrors[field.fieldId]}
-            onChange={(value) => handleChange(field.fieldId, value)}
+            onChange={(value) => handleFieldChange(field.fieldId, value)}
           />
-        </div>
-      ))}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: 16,
-        }}
-      >
+        ))}
+      </div>
+
+      <div className={styles.buttonRow}>
         {!isFirst && (
           <button
             type="button"
-            onClick={handlePrev}
-            style={{ padding: "8px 18px" }}
+            onClick={() => onPrev()}
+            className={styles.button}
+            style={{
+              background: "#fff",
+              color: "#4b5563",
+              border: "1.5px solid #e5e7eb",
+            }}
           >
-            Prev
+            Previous
           </button>
         )}
-        {!isLast && (
-          <button
-            type="button"
-            onClick={handleNext}
-            style={{ padding: "8px 18px", marginLeft: "auto" }}
-          >
-            Next
-          </button>
-        )}
-        {isLast && (
-          <button
-            type="button"
-            onClick={handleSubmit}
-            style={{ padding: "8px 18px", marginLeft: "auto" }}
-          >
-            Submit
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={handleContinue}
+          className={styles.button}
+          style={{ marginLeft: "auto" }}
+        >
+          {isLast ? "Submit" : "Continue"}
+        </button>
       </div>
-    </form>
+    </div>
   );
 }
