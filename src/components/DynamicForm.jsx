@@ -57,7 +57,9 @@ export default function DynamicForm({ rollNumber, initialForm }) {
     return (
       <div className={styles.sectionContainer} style={{ textAlign: "center" }}>
         <div className={styles.sectionHeader}>Error</div>
-        <div style={{ color: "#dc2626", marginTop: "1rem" }}>{fetchError}</div>
+        <div style={{ color: "var(--error)", marginTop: "1rem" }}>
+          {fetchError}
+        </div>
         <button
           className={styles.button}
           onClick={() => window.location.reload()}
@@ -85,9 +87,27 @@ export default function DynamicForm({ rollNumber, initialForm }) {
 
   const goToNext = (values, errors) => {
     if (Object.keys(errors).length === 0) {
+      // Check if all required fields are filled
+      const hasEmptyRequired = section.fields.some(
+        (field) =>
+          field.required &&
+          (!values[field.fieldId] ||
+            (Array.isArray(values[field.fieldId]) &&
+              values[field.fieldId].length === 0))
+      );
+
+      if (hasEmptyRequired) {
+        setSectionErrors((prev) => ({
+          ...prev,
+          _section: "Please fill in all required fields before proceeding",
+        }));
+        return;
+      }
+
       setFormValues((prev) => ({ ...prev, ...values }));
       setSectionErrors({});
       setCurrentSection((s) => Math.min(s + 1, form.sections.length - 1));
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       setSectionErrors(errors);
     }
@@ -104,7 +124,42 @@ export default function DynamicForm({ rollNumber, initialForm }) {
   };
 
   return (
-    <div style={{ padding: "1rem" }}>
+    <div className="form-content">
+      <div className="form-header">
+        <div>
+          <h1
+            style={{
+              fontSize: "1.5rem",
+              color: "var(--text-primary)",
+              marginBottom: "0.25rem",
+            }}
+          >
+            {form.formTitle}
+          </h1>
+          <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)" }}>
+            Form ID: {form.formId}
+          </div>
+        </div>
+        <div style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+          Version {form.version}
+        </div>
+      </div>
+
+      {/* Progress indicators */}
+      <div className={styles.sectionProgress}>
+        {form.sections.map((s, index) => (
+          <div
+            key={s.sectionId}
+            className={`${styles.progressStep} ${
+              index === currentSection ? styles.active : ""
+            } ${index < currentSection ? styles.completed : ""}`}
+          >
+            <div className={styles.stepNumber}>{index + 1}</div>
+            <div className={styles.stepLabel}>{s.title}</div>
+          </div>
+        ))}
+      </div>
+
       <Section
         section={section}
         values={formValues}
@@ -118,16 +173,10 @@ export default function DynamicForm({ rollNumber, initialForm }) {
         sectionIndex={currentSection}
         totalSections={form.sections.length}
       />
-      <div
-        style={{
-          textAlign: "center",
-          color: "#6b7280",
-          fontSize: "0.95rem",
-          marginTop: "1rem",
-        }}
-      >
-        Section {currentSection + 1} of {form.sections.length}
-      </div>
+
+      {sectionErrors._section && (
+        <div className={styles.sectionError}>{sectionErrors._section}</div>
+      )}
     </div>
   );
 }
